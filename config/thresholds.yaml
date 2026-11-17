@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────
+# SentinelOS — Detection Thresholds
+# All values are tunable without code changes.
+# ─────────────────────────────────────────────────────────────
+
+memory:
+  # Percentage of RAM used before raising MemoryPressure
+  used_percent_warning: 80.0
+  used_percent_critical: 90.0
+  # Available RAM in MB below which we act
+  available_mb_critical: 256
+  # PSI (Pressure Stall Information) thresholds — avg10 field
+  psi_some_avg10_warning: 20.0   # % time at least one task stalled
+  psi_full_avg10_critical: 10.0  # % time ALL tasks stalled
+
+cpu:
+  used_percent_warning: 85.0
+  used_percent_critical: 95.0
+  # Number of consecutive samples above threshold before firing
+  sustained_samples: 3
+  sample_interval_seconds: 5
+  # PSI
+  psi_some_avg10_warning: 50.0
+  psi_full_avg10_critical: 30.0
+
+disk:
+  # Per-mount-point thresholds
+  used_percent_warning: 80.0
+  used_percent_critical: 90.0
+  # Inodes threshold
+  inode_used_percent_critical: 90.0
+  # Monitor these mount points; empty list = all
+  monitored_mounts: []
+
+file_descriptors:
+  # System-wide fd usage percentage
+  system_fd_percent_critical: 85.0
+  # Per-process fd count
+  per_process_fd_warning: 500
+  per_process_fd_critical: 900
+
+process:
+  # Zombie count threshold
+  zombie_count_warning: 5
+  zombie_count_critical: 20
+  # D-state (uninterruptible sleep) threshold
+  dstate_count_warning: 3
+  dstate_count_critical: 10
+  # Restart loop detection: N crashes within window_seconds
+  crash_loop_count: 3
+  crash_loop_window_seconds: 60
+
+monitor:
+  # How often the monitor loop ticks (seconds)
+  poll_interval_seconds: 10
+  # Number of incidents to hold in memory before flushing to DB
+  incident_queue_size: 100

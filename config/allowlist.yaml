@@ -1,0 +1,195 @@
+# ─────────────────────────────────────────────────────────────
+# SentinelOS — Action Allowlist
+#
+# ONLY actions listed here may ever be executed by the Executor.
+# Each action entry defines:
+#   id:          unique snake_case identifier
+#   description: human-readable description
+#   risk:        Low | Medium | High | Forbidden
+#   dry_run_safe: true if the dry-run stub is safe to log
+#   params:      JSON-Schema-style parameter definitions
+#   rollback_id: id of the action that undoes this one (optional)
+#
+# Forbidden actions are listed for documentation only;
+# the Executor will NEVER run them.
+# ─────────────────────────────────────────────────────────────
+
+actions:
+
+  # ── Memory ────────────────────────────────────────────────
+  - id: drop_caches
+    description: "Write 1/2/3 to /proc/sys/vm/drop_caches to free page cache"
+    risk: Low
+    dry_run_safe: true
+    params:
+      level:
+        type: integer
+        enum: [1, 2, 3]
+        description: "1=page cache, 2=dentries+inodes, 3=both"
+    rollback_id: null   # not reversible, but harmless
+
+  - id: kill_process_sigterm
+    description: "Send SIGTERM to a non-protected process"
+    risk: Medium
+    dry_run_safe: true
+    params:
+      pid:
+        type: integer
+        minimum: 2
+      reason:
+        type: string
+        maxLength: 256
+    rollback_id: null
+
+  - id: kill_process_sigkill
+    description: "Send SIGKILL to a non-protected process (last resort)"
+    risk: High
+    dry_run_safe: true
+    params:
+      pid:
+        type: integer
+        minimum: 2
+      reason:
+        type: string
+        maxLength: 256
+    rollback_id: null
+
+  # ── CPU ───────────────────────────────────────────────────
+  - id: renice_process
+    description: "Change nice value (priority) of a process"
+    risk: Low
+    dry_run_safe: true
+    params:
+      pid:
+        type: integer
+        minimum: 2
+      nice_value:
+        type: integer
+        minimum: -20
+        maximum: 19
+    rollback_id: renice_process   # re-run with original nice to roll back
+
+  - id: set_cpu_cgroup_quota
+    description: "Apply a CPU quota to a cgroup v2 slice"
+    risk: Medium
+    dry_run_safe: true
+    params:
+      cgroup_path:
+        type: string
+        pattern: "^/sys/fs/cgroup/"
+      quota_us:
+        type: integer
+        minimum: 1000
+      period_us:
+        type: integer
+        minimum: 1000
+    rollback_id: remove_cpu_cgroup_quota
+
+  - id: remove_cpu_cgroup_quota
+    description: "Remove CPU quota from a cgroup v2 slice (rollback for set_cpu_cgroup_quota)"
+    risk: Low
+    dry_run_safe: true
+    params:
+      cgroup_path:
+        type: string
+        pattern: "^/sys/fs/cgroup/"
+    rollback_id: null
+
+  # ── Disk ──────────────────────────────────────────────────
+  - id: delete_file
+    description: "Delete a single non-critical file (logs, temp files)"
+    risk: Medium
+    dry_run_safe: true
+    params:
+      path:
+        type: string
+        description: "Absolute path to the file to delete"
+      max_size_mb:
+        type: number
+        description: "Safety cap: refuse if file is larger than this"
+    rollback_id: null   # file is gone; must have been backed up first
+
+  - id: truncate_log_file
+    description: "Truncate a log file to 0 bytes (after rotation)"
+    risk: Low
+    dry_run_safe: true
+    params:
+      path:
+        type: string
+    rollback_id: null
+
+  - id: run_journalctl_vacuum
+    description: "Vacuum systemd journal to free disk space"
+    risk: Low
+    dry_run_safe: true
+    params:
+      max_size:
+        type: string
+        description: "e.g. '500M', '1G'"
+        pattern: "^[0-9]+(K|M|G)$"
+    rollback_id: null
+
+  # ── Services ──────────────────────────────────────────────
+  - id: restart_systemd_unit
+    description: "Restart a non-protected systemd unit"
+    risk: Medium
+    dry_run_safe: true
+    params:
+      unit:
+        type: string
+        pattern: "^[a-zA-Z0-9_\\-\\.@]+\\.(service|socket|timer)$"
+    rollback_id: stop_systemd_unit
+
+  - id: stop_systemd_unit
+    description: "Stop a non-protected systemd unit"
+    risk: High
+    dry_run_safe: true
+    params:
+      unit:
+        type: string
+        pattern: "^[a-zA-Z0-9_\\-\\.@]+\\.(service|socket|timer)$"
+    rollback_id: restart_systemd_unit
+
+  # ── File Descriptors ──────────────────────────────────────
+  - id: raise_ulimit_nofile
+    description: "Raise the open-file limit for a running process via /proc/PID/limits"
+    risk: Low
+    dry_run_safe: true
+    params:
+      pid:
+        type: integer
+        minimum: 2
+      new_limit:
+        type: integer
+        minimum: 1024
+        maximum: 1048576
+    rollback_id: null
+
+  # ── FORBIDDEN (documented, never executed) ────────────────
+  - id: __forbidden_rm_rf
+    description: "FORBIDDEN: recursive force-delete"
+    risk: Forbidden
+    dry_run_safe: false
+    params: {}
+    rollback_id: null
+
+  - id: __forbidden_disk_format
+    description: "FORBIDDEN: disk formatting"
+    risk: Forbidden
+    dry_run_safe: false
+    params: {}
+    rollback_id: null
+
+  - id: __forbidden_edit_etc
+    description: "FORBIDDEN: editing files under /etc"
+    risk: Forbidden
+    dry_run_safe: false
+    params: {}
+    rollback_id: null
+
+  - id: __forbidden_kernel_module
+    description: "FORBIDDEN: loading/unloading kernel modules"
+    risk: Forbidden
+    dry_run_safe: false
+    params: {}
+    rollback_id: null

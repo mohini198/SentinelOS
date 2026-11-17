@@ -1,0 +1,31 @@
+# ─────────────────────────────────────────────────────────────
+# SentinelOS — Protected Processes
+# Actions targeting any entry here are ALWAYS blocked (Forbidden tier).
+# ─────────────────────────────────────────────────────────────
+
+# PIDs that are always forbidden regardless of name
+forbidden_pids:
+  - 1       # systemd / init
+
+# Process names (comm field, /proc/<pid>/comm) that are forbidden
+# Matching is case-insensitive, substring match.
+forbidden_names:
+  - sshd
+  - systemd
+  - sentinelos    # the agent itself
+  - udev
+  - journald
+  - dbus-daemon
+  - NetworkManager
+  - polkitd
+  - rsyslogd
+
+# Executable path prefixes — any process whose /proc/<pid>/exe
+# starts with these paths is protected.
+forbidden_exe_prefixes:
+  - /sbin/init
+  - /lib/systemd/systemd
+  - /usr/sbin/sshd
+
+# If true, also protect any process owned by root with no controlling tty
+protect_root_no_tty: true
