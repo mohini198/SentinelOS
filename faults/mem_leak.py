@@ -16,4 +16,4 @@ while len(hold) * a.step_mb < a.max_mb and time.time() - start < a.max_seconds:
     print(f"leaked {len(hold) * a.step_mb} MB", flush=True)
     time.sleep(1)
 print("cap reached, holding 20s then exiting", flush=True)
-time.sleep(20)
+time.sleep(300)

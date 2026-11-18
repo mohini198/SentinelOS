@@ -17,4 +17,4 @@ try:
 except OSError as e:
     print("hit limit:", e)
 print("holding 20s then exiting", flush=True)
-time.sleep(20)
+time.sleep(300)
