@@ -43,5 +43,22 @@ def monitor(
     from sentinelos.monitor_loop import run_monitor
     run_monitor(interval, cooldown, once, no_logs)
 
+@app.command()
+def act(
+    action_id: str,
+    param: list[str] = typer.Option([], "--param", "-p", help="key=value, repeatable"),
+    execute: bool = typer.Option(False, "--execute", help="really run it (also needs SENTINEL_DRY_RUN=false)"),
+):
+    """Developer tool: try one allowlisted action (dry-run by default)."""
+    from sentinelos.actions import run_action
+    from sentinelos.config import settings
+    params = {}
+    for kv in param:
+        k, _, v = kv.partition("=")
+        params[k] = int(v) if v.lstrip("-").isdigit() else v
+    dry = settings.dry_run or not execute
+    r = run_action(action_id, params, dry_run=dry)
+    typer.echo(f"[{r.outcome}] {r.action_id} (risk {r.risk}): {r.detail}")
+    
 if __name__ == "__main__":
     app()

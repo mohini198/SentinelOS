@@ -32,11 +32,13 @@ def build_bundle(finding, snap, collect_logs: bool = True) -> dict:
         "summary": finding.summary,
         "evidence": finding.evidence,
         "system": {
+            
             "mem_available_pct": round(snap.mem.available_pct, 1),
             "swap_used_pct": round(snap.mem.swap_used_pct, 1),
             "cpu_pct": snap.cpu_pct,
             "load": asdict(snap.load),
             "ncpu": snap.ncpu,
+            "mem_total_kb": snap.mem.total_kb,
             "psi": {k: (asdict(v) if v else None) for k, v in snap.psi.items()},
             "disks": [asdict(d) for d in snap.disks],
             "file_nr": asdict(snap.file_nr) if snap.file_nr else None,
