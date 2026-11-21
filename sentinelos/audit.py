@@ -32,6 +32,9 @@ from sentinelos.models import (
     make_engine,
     make_session_factory,
 )
+from sentinelos.models import (
+    ActionOutcome, AuditEntry, Incident, ActionsTaken, make_engine, make_session_factory, utcnow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +88,7 @@ class AuditLog:
                     approved_by=approved_by,
                     outcome=outcome,
                     outcome_detail=outcome_detail,
-                    created_at=datetime.datetime.utcnow(),
+                    created_at=utcnow(),
                 )
                 if params:
                     entry.set_params(params)

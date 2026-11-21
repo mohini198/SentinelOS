@@ -36,6 +36,10 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
+def utcnow() -> datetime.datetime:
+    """Naive UTC, same storage format as before (keeps the audit hash chain valid)."""
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
 # ── Enums (kept as Python strings in DB for readability) ──────────────────────
 
 class Severity(str, Enum):
@@ -97,7 +101,7 @@ class Incident(Base):
         String(32), nullable=False, default=IncidentState.OPEN
     )
     detected_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.utcnow
+        DateTime, nullable=False, default=utcnow
     )
     resolved_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
 
