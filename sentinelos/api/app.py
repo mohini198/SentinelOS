@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import os
 import time
+from ..detector import Collector
+from .system import demo_system, live_system
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
@@ -28,6 +30,7 @@ DEMO = os.environ.get("SENTINEL_DEMO", "").lower() in ("1", "true", "yes")
 DB = os.environ.get("SENTINEL_DB_PATH", "demo.db" if DEMO else str(settings.db_path))
 
 app = FastAPI(title="SentinelOS dashboard")
+_collector = None if DEMO else Collector(settings.thresholds.disk.monitored_mounts or None)
 Session = make_session_factory(make_engine(DB))
 if DEMO:
     seed_demo(Session)
@@ -64,9 +67,16 @@ def info():
 
 
 @app.get("/api/incidents")
-def incidents():
+def incidents(severity: str = "", state: str = "", fault_type: str = ""):
     with Session() as s:
-        rows = s.query(Incident).order_by(Incident.id.desc()).limit(50).all()
+        q = s.query(Incident)
+        if severity:
+            q = q.filter(Incident.severity == severity.upper())
+        if state:
+            q = q.filter(Incident.state == state.upper())
+        if fault_type:
+            q = q.filter(Incident.fault_type == fault_type)
+        rows = q.order_by(Incident.id.desc()).limit(100).all()
     return [{"id": r.id, "uuid": r.uuid[:8], "severity": r.severity, "state": r.state,
              "fault_type": r.fault_type, "summary": r.summary,
              "detected_at": r.detected_at.isoformat()} for r in rows]
@@ -78,6 +88,8 @@ def incident(iid: int):
     logs = inc.get_raw_data().get("logs_untrusted", {})
     return {"id": inc.id, "severity": inc.severity, "state": inc.state, "fault_type": inc.fault_type,
             "summary": inc.summary, "diagnosis": asdict(diag),
+            "concepts": CONCEPTS.get(inc.fault_type),
+            "timeline": _timeline(inc),
             "proposals": [asdict(p) for p in props], "logs_untrusted": logs}
 
 
@@ -108,6 +120,41 @@ def audit():
              "risk": e.risk_tier, "outcome": e.outcome, "by": e.approved_by, "dry": e.is_dry_run,
              "detail": (e.outcome_detail or "")[:120]} for e in log.get_entries(50)]
     return {"chain_ok": ok, "chain_msg": msg, "entries": rows}
+
+@app.get("/api/thresholds")
+def thresholds():
+    return settings.thresholds.model_dump()
+
+
+@app.get("/api/system")
+def system():
+    if DEMO:
+        return demo_system()
+    return live_system(_collector.snapshot())
+
+
+@app.get("/api/audit/verify")
+def audit_verify():
+    ok, msg = AuditLog(DB).verify_chain()
+    return {"ok": ok, "message": msg}
+
+
+def _timeline(inc) -> list:
+    steps = [{"step": "Detected", "at": inc.detected_at.isoformat(timespec="seconds"),
+              "detail": inc.summary}, {"step": "Diagnosed", "at": None, "detail": "rule-based engine"}]
+    from ..models import ActionsTaken, AuditEntry
+    with Session() as s:
+        ids = [r.audit_entry_id for r in s.query(ActionsTaken).filter(ActionsTaken.incident_id == inc.id)]
+        entries = (s.query(AuditEntry).filter(AuditEntry.id.in_(ids)).order_by(AuditEntry.id).all()
+                   if ids else [])
+        for e in entries:
+            ctx = e.get_context()
+            steps.append({"step": e.action_id, "at": e.created_at.isoformat(timespec="seconds"),
+                          "outcome": e.outcome, "dry_run": e.is_dry_run, "by": e.approved_by,
+                          "detail": (e.outcome_detail or "")[:160],
+                          "before": ctx.get("before"), "after": ctx.get("after"),
+                          "verdict": ctx.get("verdict")})
+    return steps
 
 
 @app.get("/", response_class=HTMLResponse)
