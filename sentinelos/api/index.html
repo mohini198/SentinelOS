@@ -3,69 +3,225 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SentinelOS</title>
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--card:#f4f5f7;--bd:#d9dce1;--red:#c62828;--amb:#b26a00;--grn:#2e7d32;--blu:#1565c0}
-@media(prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e8e8e8;--mut:#9aa0a6;--card:#1e2127;--bd:#333842;--red:#ef6c6c;--amb:#e0a040;--grn:#6cc070;--blu:#6ea8f0}}
-*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-header{padding:14px 20px;border-bottom:1px solid var(--bd)}h1{margin:0;font-size:20px}
-#banner{display:none;background:var(--card);border-bottom:1px solid var(--bd);padding:8px 20px;color:var(--amb)}
-main{display:grid;grid-template-columns:minmax(280px,1fr) 2fr;gap:16px;padding:16px 20px}
-@media(max-width:800px){main{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px}
-.inc{padding:8px;border-radius:6px;cursor:pointer;border:1px solid transparent}.inc:hover,.inc.sel{border-color:var(--blu)}
-.CRITICAL{color:var(--red);font-weight:600}.WARNING{color:var(--amb);font-weight:600}
-.mut{color:var(--mut);font-size:13px}button{cursor:pointer;border:1px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:6px;padding:6px 10px}
-button:hover{border-color:var(--blu)}.prop{border-top:1px solid var(--bd);padding:10px 0}
-.blk{color:var(--red)}pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--bd);padding:8px;border-radius:6px;font-size:12px}
-table{width:100%;border-collapse:collapse;font-size:12px}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)}
-.tbl{overflow-x:auto}
+:root{color-scheme:dark;--bg:#0b0e14;--side:#0f131b;--card:#131824;--card2:#171d2b;--bd:#232b3b;--fg:#e6e9ef;--mut:#8b95a7;--blue:#4f8cff;--vio:#9b7bff;--ok:#2fbf71;--warn:#f0a63a;--crit:#ef5350}
+@media(prefers-color-scheme:light){:root{color-scheme:light;--bg:#f3f5f9;--side:#fff;--card:#fff;--card2:#f6f8fb;--bd:#dfe4ec;--fg:#1a2233;--mut:#667085;--blue:#2f6fed;--vio:#7a56e8;--ok:#1f9d57;--warn:#c47a0a;--crit:#d43b38}}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--fg)}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);border-right:1px solid var(--bd);padding:18px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:700;font-size:17px;letter-spacing:.2px}
+.brand svg{width:26px;height:26px;color:var(--blue)}
+.nav{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:none;color:var(--mut);font:inherit;font-weight:500;cursor:pointer;text-align:left}
+.nav svg{width:18px;height:18px;flex:none}
+.nav:hover{background:var(--card2);color:var(--fg)}
+.nav[aria-current=page]{background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)}
+.nav:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,.irow:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.sp{flex:1}.sidefoot{font-size:12px;color:var(--mut);padding:8px}
+.top{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--bd);background:var(--side);position:sticky;top:0;z-index:5}
+.top h2{margin:0;font-size:17px}.live{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 var(--ok);animation:p 2s infinite}
+@keyframes p{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+#banner{display:none;padding:8px 24px;font-size:13px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);border-bottom:1px solid var(--bd)}
+main{padding:20px 24px 40px;max-width:1500px}
+.page{display:none}.page.on{display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.card h3{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:14px}
+.kpi{--lc:var(--blue)}.kpi[data-lv=warn]{--lc:var(--warn)}.kpi[data-lv=crit]{--lc:var(--crit)}.kpi[data-lv=ok]{--lc:var(--ok)}
+.kh{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--lc)}
+.kv{font-size:30px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}.ku{font-size:14px;color:var(--mut);margin-left:3px;font-weight:500}
+.ks{font-size:12px;color:var(--mut);min-height:18px}
+.ln{fill:none;stroke:var(--lc);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ar{fill:var(--lc);opacity:.13;stroke:none}
+.c1{--lc:var(--blue)}.c2{--lc:var(--vio)}.c3{--lc:var(--warn)}.c4{--lc:var(--ok)}
+.gl{stroke:var(--bd);stroke-width:1}.ax{fill:var(--mut);font-size:10px}
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.legend{display:flex;gap:14px;margin-bottom:6px;font-size:12px;color:var(--mut)}.sw{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--lc);margin-right:5px}
+.pr{display:grid;grid-template-columns:96px 1fr 44px;gap:10px;align-items:center;margin:10px 0;font-size:13px}
+.bar{height:7px;background:var(--bd);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--lc);border-radius:4px;transition:width .4s}
+.num{font-variant-numeric:tabular-nums;text-align:right;color:var(--mut)}
+.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}.stat:last-child{border:0}.stat b{font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px;border:1px solid currentColor;white-space:nowrap}
+.CRITICAL,.b-crit{color:var(--crit)}.WARNING,.b-warn{color:var(--warn)}.b-ok{color:var(--ok)}.b-blue{color:var(--blue)}.b-mut{color:var(--mut)}
+button,select,input{font:inherit;color:var(--fg);background:var(--card2);border:1px solid var(--bd);border-radius:8px;padding:6px 12px}
+button{cursor:pointer;font-weight:600}button:hover{border-color:var(--blue)}
+button.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.two{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:14px;align-items:start}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.irow{padding:10px 12px;border:1px solid var(--bd);border-left:4px solid var(--mut);border-radius:8px;margin-bottom:8px;cursor:pointer;background:var(--card2)}
+.irow.CRITICAL{border-left-color:var(--crit)}.irow.WARNING{border-left-color:var(--warn)}
+.irow:hover,.irow.sel{border-color:var(--blue)}.irow.CRITICAL:not(:hover):not(.sel),.irow.WARNING:not(:hover):not(.sel){border-color:var(--bd)}
+.irow .t{display:flex;justify-content:space-between;gap:8px;font-weight:600}.mut{color:var(--mut);font-size:12.5px}
+.sec{border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:12px;background:var(--card2)}
+.sec h4{margin:0 0 8px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.cols b{display:block;font-size:12px;color:var(--blue);margin-bottom:2px}
+ul{margin:6px 0 0;padding-left:18px}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.prop{padding:12px 0;border-top:1px solid var(--bd)}.prop:first-of-type{border:0;padding-top:0}
+.blk{color:var(--crit);font-weight:600;margin-top:4px}.res{margin-top:6px;font-size:12.5px;color:var(--ok)}
+.tl{position:relative;margin-left:8px;padding-left:20px;border-left:2px solid var(--bd)}
+.ts{position:relative;margin-bottom:14px}.ts::before{content:"";position:absolute;left:-27px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--lc,var(--mut));border:2px solid var(--card2)}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;background:var(--bg);border:1px solid var(--bd);padding:10px;border-radius:8px;font-size:12px}
+.tbl{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mut);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
+td,th{text-align:left;padding:9px 10px;border-bottom:1px solid var(--bd)}tr:hover td{background:var(--card2)}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 14px}
+.node{padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card2);font-weight:600;font-size:13px}.node small{display:block;color:var(--mut);font-weight:400;font-size:11px}
+.node.hum{border-color:var(--warn);color:var(--warn)}.arrow{color:var(--mut)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:20}
+.modal{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;width:min(420px,92vw)}.modal h3{margin:0 0 6px;font-size:16px;color:var(--fg);text-transform:none;letter-spacing:0}
+.modal input{width:100%;margin:12px 0}.acts{display:flex;gap:8px;justify-content:flex-end}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:8px}.brand{padding:4px 8px}.sidefoot{display:none}.nav{width:auto;padding:7px 10px}
+ .row2,.row3,.two,.cols{grid-template-columns:1fr}main{padding:14px}.top{position:static}}
 </style></head><body>
-<header><h1>SentinelOS</h1><div class="mut">AI-assisted Linux failure diagnosis with human-approved remediation</div></header>
-<div id="banner">DEMO MODE: sample incidents, and approvals are simulated dry-runs. Nothing is ever executed from this page.</div>
-<main>
- <section class="card"><h3>Incidents</h3><div id="list"></div></section>
- <section>
-  <div class="card" id="detail"><span class="mut">Select an incident.</span></div>
-  <div class="card" style="margin-top:16px"><h3>Audit log <span id="chain" class="mut"></span></h3><div class="tbl"><table id="audit"></table></div></div>
+<div class="app">
+<aside>
+ <div class="brand" id="brand">SentinelOS</div>
+ <nav id="nav" style="display:contents"></nav>
+ <div class="sp"></div>
+ <div class="sidefoot">Human-approved remediation.<br>Dashboard is dry-run only.</div>
+</aside>
+<div>
+ <div class="top"><h2 id="ptitle">Overview</h2><span id="mode" class="badge b-mut">...</span><span class="sp"></span>
+  <span class="live"><span class="pulse"></span><span id="clock">live</span></span></div>
+ <div id="banner">DEMO MODE: simulated data. Approvals are dry-runs; nothing is ever executed from this page.</div>
+ <main>
+ <section class="page on" id="p-ov">
+  <div class="kpis" id="kpis"></div>
+  <div class="row2">
+   <div class="card"><h3>CPU and memory, last 2 minutes</h3><div class="legend" id="lg1"></div><div id="ch1"></div></div>
+   <div class="card"><h3>Pressure stall (PSI, avg10)</h3><div id="psi"></div></div>
+  </div>
+  <div class="row3">
+   <div class="card"><h3>Pressure over time</h3><div class="legend" id="lg2"></div><div id="ch2"></div></div>
+   <div class="card"><h3>Process health</h3><div id="health"></div></div>
+   <div class="card"><h3>Recent incidents</h3><div id="recent"></div></div>
+  </div>
  </section>
-</main>
+ <section class="page" id="p-inc"><div class="two">
+  <div class="card"><div class="filters">
+   <select id="f-sev" aria-label="severity"><option value="">All severities</option><option>CRITICAL</option><option>WARNING</option></select>
+   <select id="f-state" aria-label="state"><option value="">All states</option><option>OPEN</option><option>RESOLVED</option><option>ROLLED_BACK</option><option>DISMISSED</option></select>
+   <select id="f-type" aria-label="fault type"><option value="">All types</option></select></div>
+   <div id="list"></div></div>
+  <div class="card" id="detail"><span class="mut">Select an incident to see diagnosis, proposed fixes and timeline.</span></div></div></section>
+ <section class="page" id="p-aud"><div class="card">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><h3 style="margin:0">Audit log</h3><span id="chain" class="badge b-mut"></span><span class="sp"></span><button id="vbtn">Verify chain</button></div>
+  <div class="tbl"><table id="audit"></table></div></div></section>
+ <section class="page" id="p-how"><div class="card"><h3>Pipeline</h3><div class="pipe" id="pipe"></div>
+  <p class="mut">Everything before human approval runs without any AI. The dashboard can never execute actions; real execution exists only in the CLI.</p></div>
+  <div class="card" style="margin-top:14px"><h3>OS concepts used</h3><div class="cgrid" id="concepts"></div></div></section>
+ </main>
+</div></div>
 <script>
-const $=id=>document.getElementById(id);
-function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
-async function api(url,opt){const r=await fetch(url,opt);const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);return j}
-let cur=null;
-async function loadList(){
-  const rows=await api('/api/incidents');const box=$('list');box.replaceChildren();
-  if(!rows.length)box.append(el('div','mut','No incidents yet. Start the monitor.'));
-  rows.forEach(r=>{const d=el('div','inc'+(r.id===cur?' sel':''));
-    const h=el('div');h.append(el('span',r.severity,r.severity),el('span','',' #'+r.id+' '+r.fault_type));
-    d.append(h,el('div','mut',r.summary+' ('+r.state+')'));d.onclick=()=>show(r.id);box.append(d)});
-}
-async function show(id){
-  cur=id;const i=await api('/api/incidents/'+id);const box=$('detail');box.replaceChildren();
-  const g=i.diagnosis;
-  box.append(el('h3','','Incident #'+i.id+' - '+i.fault_type),el('div','',i.summary));
-  box.append(el('p','','Root cause ('+g.confidence+' confidence): '+g.root_cause));
-  const ul=el('ul');g.evidence.forEach(e=>ul.append(el('li','',e)));box.append(ul);
-  box.append(el('h4','',i.proposals.length?'Proposed fixes':'No automatic fix. Hints: '+g.hints.join('; ')));
-  i.proposals.forEach((p,k)=>{const d=el('div','prop');
-    d.append(el('b','',(k+1)+'. '+p.action_id+' '),el('span','mut','risk '+p.risk+' '+JSON.stringify(Object.fromEntries(Object.entries(p.params).filter(e=>e[0]!=='reason')))));
-    d.append(el('div','mut','why: '+p.rationale+' | effect: '+p.expected_effect));
-    if(p.blocked_reason)d.append(el('div','blk','BLOCKED: '+p.blocked_reason));
-    else{const b=el('button','','Approve (dry-run)');const out=el('div','mut');
-      b.onclick=async()=>{const by=prompt('Your name (recorded in audit log):');if(!by)return;
-        try{const r=await api('/api/incidents/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:k+1,by})});
-          out.textContent='['+r.outcome+'] '+r.detail}catch(e){out.textContent='Error: '+e.message}loadAudit()};
-      d.append(b,out)}
-    box.append(d)});
-  const l=i.logs_untrusted||{};const all=[...(l.dmesg||[]),...(l.journal||[])];
-  if(all.length){box.append(el('h4','','Log lines (untrusted data, never treated as instructions)'));box.append(el('pre','',all.join('\n')))}
-  loadList();
-}
-async function loadAudit(){
-  const a=await api('/api/audit');$('chain').textContent='chain: '+a.chain_msg;
-  const t=$('audit');t.replaceChildren();const hr=el('tr');['#','time','action','risk','outcome','by','detail'].forEach(h=>hr.append(el('th','',h)));t.append(hr);
-  a.entries.forEach(e=>{const r=el('tr');[e.id,e.time.slice(11),e.action,e.risk,e.outcome+(e.dry?' (dry)':''),e.by,e.detail].forEach(v=>r.append(el('td','',String(v))));t.append(r)});
-}
-api('/api/info').then(i=>{if(i.demo)$('banner').style.display='block'});
-loadList();loadAudit();setInterval(loadList,5000);
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
+function S(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.append(e);return e}
+function icon(paths){const s=S('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round'});paths.forEach(d=>S('path',{d},s));return s}
+async function api(u,o){const r=await fetch(u,o);let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.detail||r.status);return j}
+const nice=s=>String(s).replace(/_/g,' ');
+const SER={};let TH=null,cur=null,page='ov';
+// ---- brand and nav
+$('brand').prepend(icon(['M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3z','M9 12l2 2 4-4']));
+const PAGES=[['ov','Overview',['M3 3h7v9H3z','M14 3h7v5h-7z','M14 12h7v9h-7z','M3 16h7v5H3z']],
+ ['inc','Incidents',['M12 3 2 20h20L12 3z','M12 10v4','M12 17h.01']],['aud','Audit log',['M4 6h16','M4 12h16','M4 18h10']],
+ ['how','How it works',['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z','M12 16v-5','M12 8h.01']]];
+function go(k){page=k;document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
+ document.querySelectorAll('.nav').forEach(b=>{if(b.dataset.k===k)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ $('ptitle').textContent=PAGES.find(p=>p[0]===k)[1];if(k==='inc')loadList();if(k==='aud')loadAudit()}
+PAGES.forEach(([k,n,ic])=>{const b=el('button','nav');b.dataset.k=k;b.append(icon(ic),el('span','',n));b.onclick=()=>go(k);$('nav').append(b)});
+// ---- charts
+function spark(a,mx){const W=120,H=38,s=S('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H,preserveAspectRatio:'none'});
+ const v=a.filter(x=>x!=null);if(v.length<2)return s;const m=mx||Math.max(...v,1)*1.1;
+ const pts=v.map((x,i)=>[(W*(60-v.length+i)/59),H-2-(Math.min(x,m)/m)*(H-4)]);
+ const l=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+ S('path',{d:l+` L${pts[pts.length-1][0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`,class:'ar'},s);S('path',{d:l,class:'ln'},s);return s}
+function chart(box,defs,fixed){const W=640,H=190,L=34,B=18,T=8,R=6,svg=S('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+ const all=defs.flatMap(d=>SER[d.k]||[]).filter(x=>x!=null);const mx=fixed||Math.max(10,...all)*1.2;
+ [0,.25,.5,.75,1].forEach(f=>{const y=T+(H-T-B)*(1-f);S('line',{x1:L,x2:W-R,y1:y,y2:y,class:'gl'},svg);S('text',{x:L-6,y:y+4,'text-anchor':'end',class:'ax'},svg).textContent=Math.round(mx*f)});
+ defs.forEach(d=>{const a=(SER[d.k]||[]).slice(-60);const pts=a.map((v,i)=>v==null?null:[L+(W-L-R)*(60-a.length+i)/59,T+(H-T-B)*(1-Math.min(v,mx)/mx)]).filter(Boolean);
+  if(pts.length<2)return;const l=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  S('path',{d:l+` L${pts[pts.length-1][0].toFixed(1)} ${H-B} L${pts[0][0].toFixed(1)} ${H-B} Z`,class:'ar '+d.c},svg);S('path',{d:l,class:'ln '+d.c},svg)});
+ box.replaceChildren(svg)}
+function legend(b,defs){defs.forEach(d=>{const s=el('span','c '+d.c),w=el('span','sw');w.style.background='var(--lc)';s.append(w,d.n);s.style.background='none';b.append(s)})}
+const D1=[{k:'cpu_pct',c:'c1',n:'CPU %'},{k:'mem_used_pct',c:'c2',n:'Memory %'}],D2=[{k:'psi_cpu_some',c:'c1',n:'CPU'},{k:'psi_mem_some',c:'c3',n:'Memory'},{k:'psi_io_some',c:'c4',n:'I/O'}];
+legend($('lg1'),D1);legend($('lg2'),D2);
+// ---- KPIs
+const KP=[{k:'cpu_pct',t:'CPU usage',u:'%',th:['cpu','used_percent_warning','used_percent_critical'],m:100},
+ {k:'mem_used_pct',t:'Memory used',u:'%',th:['memory','used_percent_warning','used_percent_critical'],m:100},
+ {k:'swap_used_pct',t:'Swap used',u:'%',m:100},{k:'load1',t:'Load average (1m)',u:''},
+ {k:'fd_used_pct',t:'System file descriptors',u:'%',th:['file_descriptors',null,'system_fd_percent_critical'],m:100},
+ {k:'disk_pct',t:'Disk used (/)',u:'%',th:['disk','used_percent_warning','used_percent_critical'],m:100}];
+const KC={};KP.forEach(d=>{const c=el('div','card kpi'),h=el('div','kh');h.append(el('span','dot'),el('span','',d.t));
+ const v=el('div','kv'),n=el('span'),u=el('span','ku',d.u);v.append(n,u);const sub=el('div','ks'),sp=el('div');c.append(h,v,sub,sp);$('kpis').append(c);KC[d.k]={c,n,sub,sp}});
+function level(v,th){if(v==null)return'';if(!th||!TH)return'ok';const t=TH[th[0]]||{};if(th[2]&&t[th[2]]!=null&&v>=t[th[2]])return'crit';if(th[1]&&t[th[1]]!=null&&v>=t[th[1]])return'warn';return'ok'}
+const PS=[['psi_cpu_some','CPU some'],['psi_mem_some','Memory some'],['psi_mem_full','Memory full'],['psi_io_some','I/O some']];
+function draw(s){s.disk_pct=(s.disks&&s.disks[0])?s.disks[0].used_pct:null;
+ [...KP.map(d=>d.k),...PS.map(p=>p[0])].forEach(k=>{(SER[k]=SER[k]||[]).push(s[k]);if(SER[k].length>60)SER[k].shift()});
+ KP.forEach(d=>{const v=s[d.k],K=KC[d.k];K.n.textContent=v==null?'n/a':String(v);K.c.dataset.lv=level(v,d.th);
+  K.sub.textContent=d.k==='disk_pct'&&s.disks&&s.disks[0]?'inodes '+s.disks[0].inode_pct+'%':d.k==='fd_used_pct'?(s.fd_allocated+' of '+s.fd_max):d.k==='mem_used_pct'?Math.round(s.mem_available_kb/1024)+' MB available':'';
+  K.sp.replaceChildren(spark(SER[d.k],d.m))});
+ chart($('ch1'),D1,100);chart($('ch2'),D2);
+ const p=$('psi');p.replaceChildren();PS.forEach(([k,n])=>{const v=s[k],r=el('div','pr'),b=el('div','bar'),i=el('i');i.style.width=Math.min(100,v||0)+'%';
+  r.style.setProperty('--lc',v>=30?'var(--crit)':v>=10?'var(--warn)':'var(--ok)');b.append(i);r.append(el('span','',n),b,el('span','num',v==null?'n/a':v+'%'));p.append(r)});
+ const h=$('health');h.replaceChildren();[['Zombie processes',s.zombie_count],['D-state processes',s.dstate_count],['Load 5 / 15 min',s.load5+' / '+s.load15],['Memory total',Math.round(s.mem_total_kb/1048576*10)/10+' GB']].forEach(([a,b])=>{const r=el('div','stat');r.append(el('span','mut',a),el('b','',String(b)));h.append(r)});
+ $('clock').textContent=new Date().toLocaleTimeString()}
+async function tick(){try{draw(await api('/api/system'))}catch(e){$('clock').textContent='data unavailable'}}
+async function recent(){try{const rows=(await api('/api/incidents')).slice(0,5),b=$('recent');b.replaceChildren();if(!rows.length)b.append(el('div','mut','No incidents. System healthy.'));
+ rows.forEach(r=>{const d=el('div','stat');d.style.cursor='pointer';const l=el('span');l.append(el('span','badge '+r.severity,r.severity),el('span','',' '+nice(r.fault_type)));d.append(l,el('span','mut','#'+r.id));d.onclick=()=>{go('inc');show(r.id)};b.append(d)})}catch(e){}}
+// ---- incidents
+async function loadList(){const q=new URLSearchParams();[['severity','f-sev'],['state','f-state'],['fault_type','f-type']].forEach(([k,i])=>{if($(i).value)q.set(k,$(i).value)});
+ const box=$('list');try{const rows=await api('/api/incidents?'+q);box.replaceChildren();if(!rows.length)box.append(el('div','mut','No incidents match these filters.'));
+  const ft=$('f-type'),have=new Set([...ft.options].map(o=>o.value));rows.forEach(r=>{if(!have.has(r.fault_type)){have.add(r.fault_type);ft.append(new Option(nice(r.fault_type),r.fault_type))}});
+  rows.forEach(r=>{const d=el('div','irow '+r.severity+(r.id===cur?' sel':''));d.tabIndex=0;const t=el('div','t');t.append(el('span','',nice(r.fault_type)),el('span','badge '+r.severity,r.severity));
+   const m=el('div','mut',r.summary),f=el('div','mut','#'+r.id+'  |  '+r.state+'  |  '+r.detected_at.slice(11,19));d.append(t,m,f);d.onclick=()=>show(r.id);d.onkeydown=e=>{if(e.key==='Enter')show(r.id)};box.append(d)})}
+ catch(e){box.replaceChildren(el('div','blk','Error: '+e.message))}}
+['f-sev','f-state','f-type'].forEach(i=>$(i).onchange=loadList);
+function modal(title,desc,ok){const o=el('div','ov'),m=el('div','modal'),i=el('input');i.placeholder='Your name';i.maxLength=40;i.setAttribute('aria-label','your name');
+ const close=()=>o.remove(),go2=()=>{const v=i.value.trim();if(v){close();ok(v)}};
+ const c=el('button','','Cancel'),y=el('button','pri','Approve (dry-run)');c.onclick=close;y.onclick=go2;i.onkeydown=e=>{if(e.key==='Enter')go2();if(e.key==='Escape')close()};
+ const a=el('div','acts');a.append(c,y);m.append(el('h3','',title),el('div','mut',desc),i,a);o.append(m);o.onclick=e=>{if(e.target===o)close()};document.body.append(o);i.focus()}
+const TONE={SUCCESS:'var(--ok)',BLOCKED:'var(--crit)',FAILED:'var(--crit)',ROLLED_BACK:'var(--warn)',DRY_RUN:'var(--blue)'};
+function sec(box,title){const s=el('div','sec');s.append(el('h4','',title));box.append(s);return s}
+async function show(id){cur=id;const box=$('detail');box.replaceChildren(el('span','mut','Loading...'));
+ try{const i=await api('/api/incidents/'+id),g=i.diagnosis;box.replaceChildren();
+  const hd=el('div');hd.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap';hd.append(el('h2',null,nice(i.fault_type)),el('span','badge '+i.severity,i.severity),el('span','badge b-blue',i.state),el('span','mut','#'+i.id));hd.firstChild.style.margin='0';box.append(hd,el('div','mut',i.summary));
+  let s=sec(box,'Diagnosis');const cf=g.confidence==='high'?'b-ok':g.confidence==='medium'?'b-warn':'b-crit';
+  const rc=el('div');rc.append(el('span','badge '+cf,g.confidence+' confidence'),el('span','',' '+g.root_cause));s.append(rc);
+  if(g.culprit)s.append(el('div','mut','Culprit: '+g.culprit.name+' (pid '+g.culprit.pid+')'));
+  const ul=el('ul');g.evidence.forEach(e=>ul.append(el('li','',e)));s.append(ul);
+  if(i.concepts){const c=i.concepts;s=sec(box,'OS concept: '+c.concept);const cl=el('div','cols');
+   [['Kernel view',c.kernel],['Why it happens',c.why],['How the fix works',c.fix]].forEach(([a,b])=>{const d=el('div');d.append(el('b','',a),el('span','mut',b));cl.append(d)});s.append(cl);
+   const eb=el('button','','Explain with AI (local only)'),eo=el('div','mut');eo.style.marginTop='8px';eb.style.marginTop='10px';
+   eb.onclick=async()=>{eo.textContent='Thinking...';try{const r=await api('/api/incidents/'+id+'/explain',{method:'POST'});eo.textContent=r.explanation+(r.ranking.length?'  AI ranking: '+r.ranking.join(' > '):'')+(r.caveat?' ('+r.caveat+')':'')}catch(e){eo.textContent='AI unavailable: '+e.message}};s.append(eb,eo)}
+  s=sec(box,i.proposals.length?'Proposed fixes':'No automatic fix');if(!i.proposals.length)s.append(el('div','mut','Hints: '+g.hints.join('; ')));
+  i.proposals.forEach((p,k)=>{const d=el('div','prop'),rk=p.risk==='Low'?'b-ok':p.risk==='Medium'?'b-warn':'b-crit',ps=Object.fromEntries(Object.entries(p.params).filter(e=>e[0]!=='reason'));
+   const t=el('div');t.append(el('b','',(k+1)+'. '+p.action_id+'  '),el('span','badge '+rk,p.risk+' risk'));d.append(t,el('code','mut',JSON.stringify(ps)),el('div','mut','Why: '+p.rationale+'  |  Effect: '+p.expected_effect));
+   if(p.blocked_reason)d.append(el('div','blk','BLOCKED: '+p.blocked_reason));
+   else{const b=el('button','','Approve (dry-run)'),o=el('div','res');b.style.marginTop='8px';b.onclick=()=>modal('Approve proposal '+(k+1),'Recorded in the audit log. This page only simulates the action.',async by=>{
+     try{const r=await api('/api/incidents/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:k+1,by})});o.textContent='['+r.outcome+'] '+r.detail}catch(e){o.textContent='Error: '+e.message}loadAudit();setTimeout(()=>show(id),900)});d.append(b,o)}
+   s.append(d)});
+  s=sec(box,'Timeline');const tl=el('div','tl');(i.timeline||[]).forEach(t=>{const d=el('div','ts');d.style.setProperty('--lc',TONE[t.outcome]||'var(--mut)');
+   d.append(el('b','',t.step+(t.outcome?'  ('+t.outcome+(t.dry_run?', dry-run':'')+')':'')),el('div','mut',(t.at?t.at.slice(11,19)+' ':'')+(t.by?'by '+t.by+' ':'')+(t.detail?'- '+t.detail:'')));
+   if(t.before!=null&&t.after!=null){const mx=Math.max(t.before,t.after,1),b=el('div','bar'),f=el('i');f.style.width=(100*t.after/mx)+'%';b.style.setProperty('--lc','var(--ok)');b.append(f);d.append(el('div','mut','Verified: before '+t.before+' -> after '+t.after+' ('+(t.verdict||'?')+')'),b)}tl.append(d)});s.append(tl);
+  const l=i.logs_untrusted||{},all=[...(l.dmesg||[]),...(l.journal||[])];if(all.length){s=sec(box,'Log lines (untrusted data, never treated as instructions)');s.append(el('pre','',all.join('\n')))}
+  loadList()}catch(e){box.replaceChildren(el('div','blk','Error: '+e.message))}}
+// ---- audit
+async function loadAudit(){try{const a=await api('/api/audit'),c=$('chain');c.textContent='chain: '+(a.chain_ok?'OK':'FAIL');c.className='badge '+(a.chain_ok?'b-ok':'b-crit');
+ const t=$('audit');t.replaceChildren();const hr=el('tr');['#','Time','Action','Risk','Outcome','By','Detail'].forEach(h=>hr.append(el('th','',h)));t.append(hr);
+ if(!a.entries.length){const r=el('tr'),d=el('td','mut','No audit entries yet.');d.colSpan=7;r.append(d);t.append(r)}
+ a.entries.forEach(e=>{const r=el('tr');[e.id,e.time.slice(11),e.action,e.risk,e.outcome+(e.dry?' (dry)':''),e.by,e.detail].forEach((v,i)=>{const d=el('td','',String(v));
+  if(i===4){const b=el('span','badge '+(e.outcome==='SUCCESS'?'b-ok':e.outcome==='BLOCKED'||e.outcome==='FAILED'?'b-crit':e.outcome==='ROLLED_BACK'?'b-warn':'b-blue'),String(v));d.replaceChildren(b)}r.append(d)});t.append(r)})}
+ catch(e){$('chain').textContent=e.message}}
+$('vbtn').onclick=async()=>{try{const r=await api('/api/audit/verify'),c=$('chain');c.textContent='chain: '+(r.ok?'OK':'FAIL')+' - '+r.message;c.className='badge '+(r.ok?'b-ok':'b-crit')}catch(e){$('chain').textContent=e.message}};
+// ---- how it works
+[['/proc, /sys','kernel state'],['Detector','thresholds + PSI'],['Diagnosis','rule-based'],['Planner','allowlist only'],['Human approval','you decide','hum'],['syscall','kill / prlimit'],['Verify','re-measure /proc'],['Audit','hash chain']].forEach((n,i)=>{
+ if(i)$('pipe').append(el('span','arrow','>'));const d=el('div','node'+(n[2]?' '+n[2]:''),n[0]);d.append(el('small','',n[1]));$('pipe').append(d)});
+[['/proc and /sys','Virtual files exposing live kernel state: meminfo, stat, pid/fd'],['Process states','R, S, D (uninterruptible), Z (zombie) from /proc/pid/stat'],['Signals','SIGTERM can be handled; SIGKILL cannot (High risk, typed confirmation)'],
+ ['FDs and ulimit','Per-process fd table, RLIMIT_NOFILE, system file-nr'],['Memory and OOM','MemAvailable, swap, oom_score, page cache'],['CPU scheduling','Jiffies in /proc/stat, load average, nice'],
+ ['PSI','Stall time per resource in /proc/pressure'],['File systems','statvfs blocks and inode exhaustion'],['cgroups v2','cpu.max quota (allowlisted action)']].forEach(([a,b])=>{const c=el('div','sec');c.style.margin='0';c.append(el('h4','',a),el('div','',b));$('concepts').append(c)});
+// ---- start
+api('/api/system').then(s=>{const m=$('mode');m.textContent=s.mode;m.className='badge '+(s.mode==='DEMO'?'b-warn':'b-ok');if(s.mode==='DEMO')$('banner').style.display='block'}).catch(()=>{});
+go('ov');api('/api/thresholds').then(t=>TH=t).catch(()=>{}).finally(()=>{tick();setInterval(tick,2000)});
+recent();loadList();loadAudit();setInterval(()=>{recent();if(page==='inc')loadList()},5000);
 </script></body></html>
