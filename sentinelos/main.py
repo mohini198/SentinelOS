@@ -59,6 +59,7 @@ def act(
     dry = settings.dry_run or not execute
     r = run_action(action_id, params, dry_run=dry)
     typer.echo(f"[{r.outcome}] {r.action_id} (risk {r.risk}): {r.detail}")
+    
 def _db(db: str) -> str:
     from sentinelos.config import settings
     return db or str(settings.db_path)
@@ -162,6 +163,6 @@ def audit_show(limit: int = typer.Option(15), db: str = typer.Option("", "--db")
                    f"{e.outcome:<11} by={e.approved_by} {dry} {(e.outcome_detail or '')[:45]}")
     ok, msg = log.verify_chain()
     typer.secho(f"chain: {msg}", fg=typer.colors.GREEN if ok else typer.colors.RED)
-    
+
 if __name__ == "__main__":
     app()

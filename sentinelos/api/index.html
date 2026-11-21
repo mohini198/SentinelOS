@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SentinelOS</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--card:#f4f5f7;--bd:#d9dce1;--red:#c62828;--amb:#b26a00;--grn:#2e7d32;--blu:#1565c0}
+@media(prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e8e8e8;--mut:#9aa0a6;--card:#1e2127;--bd:#333842;--red:#ef6c6c;--amb:#e0a040;--grn:#6cc070;--blu:#6ea8f0}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header{padding:14px 20px;border-bottom:1px solid var(--bd)}h1{margin:0;font-size:20px}
+#banner{display:none;background:var(--card);border-bottom:1px solid var(--bd);padding:8px 20px;color:var(--amb)}
+main{display:grid;grid-template-columns:minmax(280px,1fr) 2fr;gap:16px;padding:16px 20px}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px}
+.inc{padding:8px;border-radius:6px;cursor:pointer;border:1px solid transparent}.inc:hover,.inc.sel{border-color:var(--blu)}
+.CRITICAL{color:var(--red);font-weight:600}.WARNING{color:var(--amb);font-weight:600}
+.mut{color:var(--mut);font-size:13px}button{cursor:pointer;border:1px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:6px;padding:6px 10px}
+button:hover{border-color:var(--blu)}.prop{border-top:1px solid var(--bd);padding:10px 0}
+.blk{color:var(--red)}pre{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--bd);padding:8px;border-radius:6px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)}
+.tbl{overflow-x:auto}
+</style></head><body>
+<header><h1>SentinelOS</h1><div class="mut">AI-assisted Linux failure diagnosis with human-approved remediation</div></header>
+<div id="banner">DEMO MODE: sample incidents, and approvals are simulated dry-runs. Nothing is ever executed from this page.</div>
+<main>
+ <section class="card"><h3>Incidents</h3><div id="list"></div></section>
+ <section>
+  <div class="card" id="detail"><span class="mut">Select an incident.</span></div>
+  <div class="card" style="margin-top:16px"><h3>Audit log <span id="chain" class="mut"></span></h3><div class="tbl"><table id="audit"></table></div></div>
+ </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
+async function api(url,opt){const r=await fetch(url,opt);const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);return j}
+let cur=null;
+async function loadList(){
+  const rows=await api('/api/incidents');const box=$('list');box.replaceChildren();
+  if(!rows.length)box.append(el('div','mut','No incidents yet. Start the monitor.'));
+  rows.forEach(r=>{const d=el('div','inc'+(r.id===cur?' sel':''));
+    const h=el('div');h.append(el('span',r.severity,r.severity),el('span','',' #'+r.id+' '+r.fault_type));
+    d.append(h,el('div','mut',r.summary+' ('+r.state+')'));d.onclick=()=>show(r.id);box.append(d)});
+}
+async function show(id){
+  cur=id;const i=await api('/api/incidents/'+id);const box=$('detail');box.replaceChildren();
+  const g=i.diagnosis;
+  box.append(el('h3','','Incident #'+i.id+' - '+i.fault_type),el('div','',i.summary));
+  box.append(el('p','','Root cause ('+g.confidence+' confidence): '+g.root_cause));
+  const ul=el('ul');g.evidence.forEach(e=>ul.append(el('li','',e)));box.append(ul);
+  box.append(el('h4','',i.proposals.length?'Proposed fixes':'No automatic fix. Hints: '+g.hints.join('; ')));
+  i.proposals.forEach((p,k)=>{const d=el('div','prop');
+    d.append(el('b','',(k+1)+'. '+p.action_id+' '),el('span','mut','risk '+p.risk+' '+JSON.stringify(Object.fromEntries(Object.entries(p.params).filter(e=>e[0]!=='reason')))));
+    d.append(el('div','mut','why: '+p.rationale+' | effect: '+p.expected_effect));
+    if(p.blocked_reason)d.append(el('div','blk','BLOCKED: '+p.blocked_reason));
+    else{const b=el('button','','Approve (dry-run)');const out=el('div','mut');
+      b.onclick=async()=>{const by=prompt('Your name (recorded in audit log):');if(!by)return;
+        try{const r=await api('/api/incidents/'+id+'/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:k+1,by})});
+          out.textContent='['+r.outcome+'] '+r.detail}catch(e){out.textContent='Error: '+e.message}loadAudit()};
+      d.append(b,out)}
+    box.append(d)});
+  const l=i.logs_untrusted||{};const all=[...(l.dmesg||[]),...(l.journal||[])];
+  if(all.length){box.append(el('h4','','Log lines (untrusted data, never treated as instructions)'));box.append(el('pre','',all.join('\n')))}
+  loadList();
+}
+async function loadAudit(){
+  const a=await api('/api/audit');$('chain').textContent='chain: '+a.chain_msg;
+  const t=$('audit');t.replaceChildren();const hr=el('tr');['#','time','action','risk','outcome','by','detail'].forEach(h=>hr.append(el('th','',h)));t.append(hr);
+  a.entries.forEach(e=>{const r=el('tr');[e.id,e.time.slice(11),e.action,e.risk,e.outcome+(e.dry?' (dry)':''),e.by,e.detail].forEach(v=>r.append(el('td','',String(v))));t.append(r)});
+}
+api('/api/info').then(i=>{if(i.demo)$('banner').style.display='block'});
+loadList();loadAudit();setInterval(loadList,5000);
+</script></body></html>
